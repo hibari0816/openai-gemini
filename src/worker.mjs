@@ -151,11 +151,11 @@ async function handleCompletions (req, apiKey) {
       model = req.model;
   }
   const TASK = req.stream ? "streamGenerateContent" : "generateContent";
-  let url = `${BASE_URL}/${API_VERSION}/models/${model}:${TASK}`;
+  let url = `${BASE_URL}/${API_VERSION}/models/${model}:${TASK}?key=${apiKey}`;
   if (req.stream) { url += "?alt=sse"; }
   const response = await fetch(url, {
     method: "POST",
-    headers: makeHeaders(apiKey, { "Content-Type": "application/json" }),
+    headers:{ "Content-Type": "application/json" },
     body: JSON.stringify(await transformRequest(req)), // try
   });
 
