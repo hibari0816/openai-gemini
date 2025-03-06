@@ -140,6 +140,7 @@ async function handleEmbeddings (req, apiKey) {
 const DEFAULT_MODEL = "gemini-1.5-pro-latest";
 async function handleCompletions (req, apiKey) {
   let model = DEFAULT_MODEL;
+  let search=false
   switch(true) {
     case typeof req.model !== "string":
       break;
@@ -148,12 +149,19 @@ async function handleCompletions (req, apiKey) {
       break;
     case req.model.startsWith("gemini-"):
     case req.model.startsWith("learnlm-"):
+      if (req.model.endsWith('?')){
+        search=true;
+      }
       model = req.model;
+      model = model.replace('?', '')
   }
   const TASK = req.stream ? "streamGenerateContent" : "generateContent";
   let url = `${BASE_URL}/${API_VERSION}/models/${model}:${TASK}?key=${apiKey}`;
   if (req.stream) { url += "?alt=sse"; }
   let param = await transformRequest(req);
+  if (search) {
+    param['tools'] = [{ 'google_search': {} }]
+  }
   if(req.tools){
     param['tools']=req.tools
   }
