@@ -156,7 +156,7 @@ async function handleCompletions (req, apiKey) {
       model = model.replace('?', '')
   }
   const TASK = req.stream ? "streamGenerateContent" : "generateContent";
-  let url = `${BASE_URL}/${API_VERSION}/models/${model}:${TASK}?key=${apiKey}`;
+  let url = `${BASE_URL}/${API_VERSION}/models/${model}:${TASK}`;
   if (req.stream) { url += "?alt=sse"; }
   let param = await transformRequest(req);
   if (search) {
