@@ -151,9 +151,11 @@ async function handleCompletions (req, apiKey) {
     case req.model.startsWith("learnlm-"):
       if (req.model.endsWith('?')){
         search=true;
+        model = req.model.replace('?', '')
+      }else {
+        model = req.model;
       }
-      model = req.model;
-      model = model.replace('?', '')
+      
   }
   const TASK = req.stream ? "streamGenerateContent" : "generateContent";
   let url = `${BASE_URL}/${API_VERSION}/models/${model}:${TASK}`;
