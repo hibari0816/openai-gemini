@@ -153,10 +153,14 @@ async function handleCompletions (req, apiKey) {
   const TASK = req.stream ? "streamGenerateContent" : "generateContent";
   let url = `${BASE_URL}/${API_VERSION}/models/${model}:${TASK}?key=${apiKey}`;
   if (req.stream) { url += "?alt=sse"; }
+  let param = await transformRequest(req);
+  if(req.tools){
+    param['tools']=req.tools
+  }
   const response = await fetch(url, {
     method: "POST",
     headers:makeHeaders(apiKey, { "Content-Type": "application/json" }),
-    body: JSON.stringify(await transformRequest(req)), // try
+    body: JSON.stringify(param), // try
   });
 
   let body = response.body;
@@ -206,7 +210,6 @@ const fieldsMap = {
   top_k: "topK", // non-standard
   frequency_penalty: "frequencyPenalty",
   presence_penalty: "presencePenalty",
-  tools: "tools"
 };
 const transformConfig = (req) => {
   let cfg = {};
