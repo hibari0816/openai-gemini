@@ -409,7 +409,7 @@ async function parseStreamFlush (controller) {
   }
 }
 
-async function transformResponseStream (data, stop, first) {
+function transformResponseStream (data, stop, first) {
   const item = transformCandidatesDelta(data.candidates[0]);
   if (stop) { item.delta = {}; } else { item.finish_reason = null; }
   if (first) { item.delta.content = ""; } else { delete item.delta.role; }
@@ -449,18 +449,18 @@ async function toOpenAiStream (chunk, controller) {
   console.assert(data.candidates.length === 1, "Unexpected candidates count: %d", data.candidates.length);
   cand.index = cand.index || 0; // absent in new -002 models response
   if (!this.last[cand.index]) {
-    controller.enqueue(await transform(data, false, "first"));
+    controller.enqueue(transform(data, false, "first"));
   }
   this.last[cand.index] = data;
   if (cand.content) { // prevent empty data (e.g. when MAX_TOKENS)
-    controller.enqueue(await transform(data));
+    controller.enqueue(transform(data));
   }
 }
 async function toOpenAiStreamFlush (controller) {
   const transform = transformResponseStream.bind(this);
   if (this.last.length > 0) {
     for (const data of this.last) {
-      controller.enqueue(await transform(data, "stop"));
+      controller.enqueue(transform(data, "stop"));
     }
     controller.enqueue("data: [DONE]" + delimiter);
   }
