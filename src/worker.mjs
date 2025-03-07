@@ -437,15 +437,21 @@ function getTitle(t){
   }
 }
 
+const urlMap=new Map();
 async function getUrls(output){
-  if (output.choices[0].content && output.choices[0].content!='' && output.choices[0].urls.length > 0) {
+  if (!output.choices[0].content && output.choices[0].urls.length > 0) {
     const results = await Promise.allSettled(output.choices[0].urls.map(url => fetch(url).then(response => {
       if (!response.ok) {
         return `HTTP error! status: ${response.status}`;
       }
+      if (urlMap.has(response.url)){
+        return urlMap.get(response.url);
+      }
       return response.text().then(
         data => {
-          return '[' + getTitle(data) + '](' + response.url + ')'
+          let res = '[' + getTitle(data) + '](' + response.url + ')'
+          urlMap.set(response.url, res)
+          return res;
         }
       );
     })));
