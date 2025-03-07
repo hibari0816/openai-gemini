@@ -437,7 +437,7 @@ async function getUrls(output){
       return response.url;
     })));
     output.choices[0].urls = results.map(result => result.value);
-    let extra = '引用内容：' + output.choices[0].urls.join(SEP);
+    let extra = '<br>引用内容：' + output.choices[0].urls.join('<br>');
     if(output.choices[0]?.delta?.content){
       output.choices[0].delta.content = output.choices[0].delta.content + extra;
     }else {
