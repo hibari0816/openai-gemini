@@ -431,7 +431,7 @@ function transformResponseStream (data, stop, first) {
 async function getUrls(output){
   const results = await Promise.allSettled(output.choices[0].urls.map(url => fetch(url).then(response => {
     if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
+      return `HTTP error! status: ${response.status}`;
     }
     return response.url;
   })));
@@ -461,14 +461,18 @@ async function toOpenAiStream (chunk, controller) {
   cand.index = cand.index || 0; // absent in new -002 models response
   if (!this.last[cand.index]) {
     let output = transform(data, false, "first");
-    output.choices[0].delta.content = output.choices[0].delta.content + await getUrls(output).join('\n');
+    if (output.choices[0].delta.content && output.choices[0].urls){
+      output.choices[0].delta.content = output.choices[0].delta.content + await getUrls(output).join('\n');
+    }
     output = "data: " + JSON.stringify(output) + delimiter;
     controller.enqueue(output);
   }
   this.last[cand.index] = data;
   if (cand.content) { // prevent empty data (e.g. when MAX_TOKENS)
     let output = transform(data);
-    output.choices[0].delta.content = output.choices[0].delta.content + await getUrls(output).join('\n');
+    if (output.choices[0].delta.content && output.choices[0].urls) {
+      output.choices[0].delta.content = output.choices[0].delta.content + await getUrls(output).join('\n');
+    }
     output = "data: " + JSON.stringify(output) + delimiter;
     controller.enqueue(output);
   }
@@ -478,7 +482,9 @@ async function toOpenAiStreamFlush (controller) {
   if (this.last.length > 0) {
     for (const data of this.last) {
       let output = transform(data, "stop");
-      output.choices[0].delta.content = output.choices[0].delta.content + await getUrls(output).join('\n');
+      if (output.choices[0].delta.content && output.choices[0].urls) {
+        output.choices[0].delta.content = output.choices[0].delta.content + await getUrls(output).join('\n');
+      }
       output = "data: " + JSON.stringify(output) + delimiter;
       controller.enqueue(output);
     }
