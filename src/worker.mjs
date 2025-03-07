@@ -364,7 +364,8 @@ const transformCandidates = (key, cand) => ({
   index: cand.index || 0, // 0-index is absent in new -002 models response
   [key]: {
     role: "assistant",
-    content: cand.content?.parts.map(p => p.text).join(SEP) },
+    content: cand.content?.parts.map(p => p.text).join(SEP) 
+  },
   logprobs: null,
   finish_reason: reasonsMap[cand.finishReason] || cand.finishReason,
   urls: cand.groundingMetadata ? (cand.groundingMetadata.groundingChunks ? cand.groundingMetadata.groundingChunks.map(e=>e.web.uri) : []) : []
@@ -426,6 +427,16 @@ function transformResponseStream (data, stop, first) {
   }
   return output;
 }
+
+async function getUrls(output){
+  const results = await Promise.allSettled(output.choices[0].urls.map(url => fetch(url).then(response => {
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    return response.url;
+  })));
+  return results.map(result => result.value);
+}
 const delimiter = "\n\n";
 async function toOpenAiStream (chunk, controller) {
   const transform = transformResponseStream.bind(this);
@@ -450,12 +461,14 @@ async function toOpenAiStream (chunk, controller) {
   cand.index = cand.index || 0; // absent in new -002 models response
   if (!this.last[cand.index]) {
     let output = transform(data, false, "first");
+    output.choices[0].delta.content = output.choices[0].delta.content + getUrls(output).join('\n');
     output = "data: " + JSON.stringify(output) + delimiter;
     controller.enqueue(output);
   }
   this.last[cand.index] = data;
   if (cand.content) { // prevent empty data (e.g. when MAX_TOKENS)
     let output = transform(data);
+    output.choices[0].delta.content = output.choices[0].delta.content + getUrls(output).join('\n');
     output = "data: " + JSON.stringify(output) + delimiter;
     controller.enqueue(output);
   }
@@ -465,6 +478,7 @@ async function toOpenAiStreamFlush (controller) {
   if (this.last.length > 0) {
     for (const data of this.last) {
       let output = transform(data, "stop");
+      output.choices[0].delta.content = output.choices[0].delta.content + getUrls(output).join('\n');
       output = "data: " + JSON.stringify(output) + delimiter;
       controller.enqueue(output);
     }
