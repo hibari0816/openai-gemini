@@ -429,13 +429,13 @@ function transformResponseStream (data, stop, first) {
 }
 
 async function getUrls(output){
-  const results = await Promise.allSettled(output.choices[0].urls.map(url => fetch(url).then(response => {
-    if (!response.ok) {
-      return `HTTP error! status: ${response.status}`;
-    }
-    return response.url;
-  })));
   if (output.choices[0].urls) {
+    const results = await Promise.allSettled(output.choices[0].urls.map(url => fetch(url).then(response => {
+      if (!response.ok) {
+        return `HTTP error! status: ${response.status}`;
+      }
+      return response.url;
+    })));
     output.choices[0].urls = results.map(result => result.value);
   }
 }
