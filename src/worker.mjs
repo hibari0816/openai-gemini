@@ -424,7 +424,7 @@ function transformResponseStream (data, stop, first) {
   if (data.usageMetadata && this.streamIncludeUsage) {
     output.usage = stop ? transformUsage(data.usageMetadata) : null;
   }
-  return "data: " + JSON.stringify(output) + delimiter;
+  return output;
 }
 const delimiter = "\n\n";
 async function toOpenAiStream (chunk, controller) {
@@ -449,18 +449,24 @@ async function toOpenAiStream (chunk, controller) {
   console.assert(data.candidates.length === 1, "Unexpected candidates count: %d", data.candidates.length);
   cand.index = cand.index || 0; // absent in new -002 models response
   if (!this.last[cand.index]) {
-    controller.enqueue(transform(data, false, "first"));
+    let output = transform(data, false, "first");
+    output = "data: " + JSON.stringify(output) + delimiter;
+    controller.enqueue(output);
   }
   this.last[cand.index] = data;
   if (cand.content) { // prevent empty data (e.g. when MAX_TOKENS)
-    controller.enqueue(transform(data));
+    let output = transform(data);
+    output = "data: " + JSON.stringify(output) + delimiter;
+    controller.enqueue(output);
   }
 }
 async function toOpenAiStreamFlush (controller) {
   const transform = transformResponseStream.bind(this);
   if (this.last.length > 0) {
     for (const data of this.last) {
-      controller.enqueue(transform(data, "stop"));
+      let output = transform(data, "stop");
+      output = "data: " + JSON.stringify(output) + delimiter;
+      controller.enqueue(output);
     }
     controller.enqueue("data: [DONE]" + delimiter);
   }
