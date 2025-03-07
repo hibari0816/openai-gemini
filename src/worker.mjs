@@ -428,12 +428,12 @@ function transformResponseStream (data, stop, first) {
   return output;
 }
 
-function getTitle(t){
+function getTitle(t, dv){
   const titleMatch = t.match(/<title>(.*?)<\/title>/i);
   if (titleMatch && titleMatch[1]) {
     return titleMatch[1];
   } else {
-    return ''; // 或者你可以返回一个默认标题或错误信息
+    return dv; // 或者你可以返回一个默认标题或错误信息
   }
 }
 
@@ -449,7 +449,7 @@ async function getUrls(output){
       }
       return response.text().then(
         data => {
-          let res = '[' + getTitle(data) + '](' + response.url + ')'
+          let res = '[' + getTitle(data, response.url) + '](' + response.url + ')'
           urlMap.set(response.url, res)
           return res;
         }
