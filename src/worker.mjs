@@ -461,14 +461,14 @@ async function toOpenAiStream (chunk, controller) {
   cand.index = cand.index || 0; // absent in new -002 models response
   if (!this.last[cand.index]) {
     let output = transform(data, false, "first");
-    output.choices[0].delta.content = output.choices[0].delta.content + getUrls(output).join('\n');
+    output.choices[0].delta.content = output.choices[0].delta.content + await getUrls(output).join('\n');
     output = "data: " + JSON.stringify(output) + delimiter;
     controller.enqueue(output);
   }
   this.last[cand.index] = data;
   if (cand.content) { // prevent empty data (e.g. when MAX_TOKENS)
     let output = transform(data);
-    output.choices[0].delta.content = output.choices[0].delta.content + getUrls(output).join('\n');
+    output.choices[0].delta.content = output.choices[0].delta.content + await getUrls(output).join('\n');
     output = "data: " + JSON.stringify(output) + delimiter;
     controller.enqueue(output);
   }
@@ -478,7 +478,7 @@ async function toOpenAiStreamFlush (controller) {
   if (this.last.length > 0) {
     for (const data of this.last) {
       let output = transform(data, "stop");
-      output.choices[0].delta.content = output.choices[0].delta.content + getUrls(output).join('\n');
+      output.choices[0].delta.content = output.choices[0].delta.content + await getUrls(output).join('\n');
       output = "data: " + JSON.stringify(output) + delimiter;
       controller.enqueue(output);
     }
