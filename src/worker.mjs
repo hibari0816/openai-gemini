@@ -505,7 +505,7 @@ async function toOpenAiStreamFlush (controller) {
   if (this.last.length > 0) {
     for (const data of this.last) {
       let output = transform(data, "stop");
-      await getUrls(output);
+      // await getUrls(output);
       output = "data: " + JSON.stringify(output) + delimiter;
       controller.enqueue(output);
     }
