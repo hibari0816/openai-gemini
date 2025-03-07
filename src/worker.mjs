@@ -443,7 +443,11 @@ async function getUrls(output){
       if (!response.ok) {
         return `HTTP error! status: ${response.status}`;
       }
-      return getTitle(response.text());
+      return response.text().then(
+        data => {
+          return '[' + getTitle(data) + '](' + response.url + ')'
+        }
+      );
     })));
     output.choices[0].urls = results.map(result => result.value);
     let extra = '<br>引用内容：' + output.choices[0].urls.join('<br>');
