@@ -428,13 +428,22 @@ function transformResponseStream (data, stop, first) {
   return output;
 }
 
+function getTitle(t){
+  const titleMatch = t.match(/<title>(.*?)<\/title>/i);
+  if (titleMatch && titleMatch[1]) {
+    return titleMatch[1];
+  } else {
+    return ''; // 或者你可以返回一个默认标题或错误信息
+  }
+}
+
 async function getUrls(output){
   if (output.choices[0].urls.length > 0) {
     const results = await Promise.allSettled(output.choices[0].urls.map(url => fetch(url).then(response => {
       if (!response.ok) {
         return `HTTP error! status: ${response.status}`;
       }
-      return response.url;
+      return '['+ getTitle(response.text()) +'](' + response.url + ')';
     })));
     output.choices[0].urls = results.map(result => result.value);
     let extra = '<br>引用内容：' + output.choices[0].urls.join('<br>');
