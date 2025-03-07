@@ -435,7 +435,9 @@ async function getUrls(output){
     }
     return response.url;
   })));
-  return results.map(result => result.value);
+  if (output.choices[0].urls) {
+    output.choices[0].urls = results.map(result => result.value);
+  }
 }
 const delimiter = "\n\n";
 async function toOpenAiStream (chunk, controller) {
@@ -461,18 +463,14 @@ async function toOpenAiStream (chunk, controller) {
   cand.index = cand.index || 0; // absent in new -002 models response
   if (!this.last[cand.index]) {
     let output = transform(data, false, "first");
-    if (output.choices[0].delta.content && output.choices[0].urls){
-      output.choices[0].urls = await getUrls(output);
-    }
+    await getUrls(output);
     output = "data: " + JSON.stringify(output) + delimiter;
     controller.enqueue(output);
   }
   this.last[cand.index] = data;
   if (cand.content) { // prevent empty data (e.g. when MAX_TOKENS)
     let output = transform(data);
-    if (output.choices[0].delta.content && output.choices[0].urls) {
-      output.choices[0].urls = await getUrls(output);
-    }
+    await getUrls(output);
     output = "data: " + JSON.stringify(output) + delimiter;
     controller.enqueue(output);
   }
@@ -482,9 +480,7 @@ async function toOpenAiStreamFlush (controller) {
   if (this.last.length > 0) {
     for (const data of this.last) {
       let output = transform(data, "stop");
-      if (output.choices[0].delta.content && output.choices[0].urls) {
-        output.choices[0].urls = await getUrls(output);
-      }
+      await getUrls(output);
       output = "data: " + JSON.stringify(output) + delimiter;
       controller.enqueue(output);
     }
