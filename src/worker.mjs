@@ -462,7 +462,7 @@ async function toOpenAiStream (chunk, controller) {
   if (!this.last[cand.index]) {
     let output = transform(data, false, "first");
     if (output.choices[0].delta.content && output.choices[0].urls){
-      output.choices[0].urls = await getUrls(output).join('\n');
+      output.choices[0].urls = await getUrls(output);
     }
     output = "data: " + JSON.stringify(output) + delimiter;
     controller.enqueue(output);
@@ -471,7 +471,7 @@ async function toOpenAiStream (chunk, controller) {
   if (cand.content) { // prevent empty data (e.g. when MAX_TOKENS)
     let output = transform(data);
     if (output.choices[0].delta.content && output.choices[0].urls) {
-      output.choices[0].urls = await getUrls(output).join('\n');
+      output.choices[0].urls = await getUrls(output);
     }
     output = "data: " + JSON.stringify(output) + delimiter;
     controller.enqueue(output);
@@ -483,7 +483,7 @@ async function toOpenAiStreamFlush (controller) {
     for (const data of this.last) {
       let output = transform(data, "stop");
       if (output.choices[0].delta.content && output.choices[0].urls) {
-        output.choices[0].urls = await getUrls(output).join('\n');
+        output.choices[0].urls = await getUrls(output);
       }
       output = "data: " + JSON.stringify(output) + delimiter;
       controller.enqueue(output);
