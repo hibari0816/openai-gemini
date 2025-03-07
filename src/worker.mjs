@@ -367,6 +367,7 @@ const transformCandidates = (key, cand) => ({
     content: cand.content?.parts.map(p => p.text).join(SEP) },
   logprobs: null,
   finish_reason: reasonsMap[cand.finishReason] || cand.finishReason,
+  urls: cand.groundingMetadata ? (cand.groundingMetadata.groundingChunks ? cand.groundingMetadata.groundingChunks.map(e=>e.web.uri) : []) : []
 });
 const transformCandidatesMessage = transformCandidates.bind(null, "message");
 const transformCandidatesDelta = transformCandidates.bind(null, "delta");
@@ -408,7 +409,7 @@ async function parseStreamFlush (controller) {
   }
 }
 
-function transformResponseStream (data, stop, first) {
+async function transformResponseStream (data, stop, first) {
   const item = transformCandidatesDelta(data.candidates[0]);
   if (stop) { item.delta = {}; } else { item.finish_reason = null; }
   if (first) { item.delta.content = ""; } else { delete item.delta.role; }
@@ -427,7 +428,7 @@ function transformResponseStream (data, stop, first) {
 }
 const delimiter = "\n\n";
 async function toOpenAiStream (chunk, controller) {
-  const transform = transformResponseStream.bind(this);
+  const transform = await transformResponseStream.bind(this);
   const line = await chunk;
   if (!line) { return; }
   let data;
@@ -456,7 +457,7 @@ async function toOpenAiStream (chunk, controller) {
   }
 }
 async function toOpenAiStreamFlush (controller) {
-  const transform = transformResponseStream.bind(this);
+  const transform = await transformResponseStream.bind(this);
   if (this.last.length > 0) {
     for (const data of this.last) {
       controller.enqueue(transform(data, "stop"));
