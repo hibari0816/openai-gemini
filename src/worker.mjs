@@ -429,7 +429,7 @@ function transformResponseStream (data, stop, first) {
 }
 
 async function getUrls(output){
-  if (output.choices[0].urls) {
+  if (output.choices[0].urls.length > 0) {
     const results = await Promise.allSettled(output.choices[0].urls.map(url => fetch(url).then(response => {
       if (!response.ok) {
         return `HTTP error! status: ${response.status}`;
@@ -437,7 +437,7 @@ async function getUrls(output){
       return response.url;
     })));
     output.choices[0].urls = results.map(result => result.value);
-    let extra = '引用内容：' + output.choices[0].urls.join('\n');
+    let extra = '引用内容：' + output.choices[0].urls.join(SEP);
     if(output.choices[0]?.delta?.content){
       output.choices[0].delta.content = output.choices[0].delta.content + extra;
     }else {
