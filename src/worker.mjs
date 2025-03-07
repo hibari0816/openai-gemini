@@ -488,14 +488,14 @@ async function toOpenAiStream (chunk, controller) {
   cand.index = cand.index || 0; // absent in new -002 models response
   if (!this.last[cand.index]) {
     let output = transform(data, false, "first");
-    await getUrls(output);
+    // await getUrls(output);
     output = "data: " + JSON.stringify(output) + delimiter;
     controller.enqueue(output);
   }
   this.last[cand.index] = data;
   if (cand.content) { // prevent empty data (e.g. when MAX_TOKENS)
     let output = transform(data);
-    await getUrls(output);
+    // await getUrls(output);
     output = "data: " + JSON.stringify(output) + delimiter;
     controller.enqueue(output);
   }
