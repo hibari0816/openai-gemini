@@ -438,10 +438,10 @@ async function getUrls(output){
     })));
     output.choices[0].urls = results.map(result => result.value);
     let extra = '引用内容：' + output.choices[0].urls.join('\n');
-    if(output.choices[0]?.delta.content){
-      output.choices[0]?.delta.content = output.choices[0]?.delta.content + extra;
+    if(output.choices[0]?.delta?.content){
+      output.choices[0].delta.content = output.choices[0].delta.content + extra;
     }else {
-      output.choices[0]?.delta.content = extra;
+      output.choices[0].delta.content = extra;
     }
   }
 }
