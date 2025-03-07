@@ -367,7 +367,6 @@ const transformCandidates = (key, cand) => ({
     content: cand.content?.parts.map(p => p.text).join(SEP) },
   logprobs: null,
   finish_reason: reasonsMap[cand.finishReason] || cand.finishReason,
-  urls: cand.groundingMetadata ? (cand.groundingMetadata.groundingChunks ? cand.groundingMetadata.groundingChunks.map(e=>e.web.uri) : []) : []
 });
 const transformCandidatesMessage = transformCandidates.bind(null, "message");
 const transformCandidatesDelta = transformCandidates.bind(null, "delta");
